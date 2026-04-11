@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="badge" style="margin-top: 10px;">
+    <span class="badge-dot"></span>
+    live • Pantry items saved this session:
+    <strong style="color: rgba(18,59,42,0.95)">{{ ingredient_count }}</strong>
+  </div>
+
+  <h1 class="page-title">Cook smarter with what you already have.</h1>
+  <p class="page-subtitle">
+    Add what’s in your fridge/pantry, then get “recipes of the day” and quick ideas without clutter.
+  </p>
+
+  <div class="grid" style="grid-template-columns: 1.2fr 0.8fr;">
+    <!-- Main -->
+    <div class="grid" style="grid-template-columns: 1fr;">
+
+      <div class="card">
+        <div class="card-inner">
+          <div style="display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;">
+            <div>
+              <h2 style="margin:0 0 6px; font-size: 18px;">Quick start</h2>
+              <p class="muted" style="margin:0; line-height: 1.5;">
+                Step 1: Add your ingredients. Step 2: Check output. Step 3: Cook.
+              </p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <a class="btn primary" href="/ingredients">Add ingredients</a>
+              <a class="btn" href="/Output">See recipes</a>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div style="display:flex; gap:14px; flex-wrap:wrap;">
+            <div class="card" style="flex: 1; min-width: 240px; background: rgba(255,255,255,0.55); box-shadow:none;">
+              <div class="card-inner">
+                <div class="muted" style="font-weight:800; font-size: 12px; letter-spacing: .3px;">YOUR PANTRY SNAPSHOT</div>
+                <div style="margin-top: 10px; display:flex; flex-wrap:wrap; gap:8px;">
+                  {% if ingredients and ingredients|length > 0 %}
+                    {% for it in ingredients %}
+                      <span class="badge" style="background: rgba(31,122,74,0.08); border-color: rgba(31,122,74,0.16);">
+                        {{ it }}
+                      </span>
+                    {% endfor %}
+                  {% else %}
+                    <span class="muted">No ingredients yet. Add a few to get better matches.</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="flex: 1; min-width: 240px; background: rgba(255,255,255,0.55); box-shadow:none;">
+              <div class="card-inner">
+                <div class="muted" style="font-weight:800; font-size: 12px; letter-spacing: .3px;">SUGGESTED FLOW</div>
+                <ol class="muted" style="margin: 10px 0 0 18px; line-height: 1.7;">
+                  <li>Add 10–20 items you actually keep around.</li>
+                  <li>Check “Recipes of the Day” for inspiration.</li>
+                  <li>Use chat for quick picks and pantry ideas.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <h2 style="margin:0 0 6px; font-size: 18px;">Today’s vibe</h2>
+          <p class="muted" style="margin:0; line-height: 1.5;">
+            Beige + greens, cozy “kitchen counter” energy — clean, readable, and calm.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- AI Chat  -->
+    <div class="card" style="position: sticky; top: 86px; height: fit-content;">
+      <div class="card-inner">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <h2 style="margin:0; font-size: 18px;">KitchenIQ Assistant</h2>
+          <span class="badge" style="background: rgba(31,122,74,0.10); border-color: rgba(31,122,74,0.18);">
+            <span style="width:8px;height:8px;border-radius:999px;background: var(--accent2); display:inline-block;"></span>
+            Live 
+          </span>
+        </div>
+
+        <p class="muted" style="margin:10px 0 12px; line-height:1.5;">
+          Try: “dinner ideas”, “what can I make?”, “quick lunch”, or “clear pantry”.
+        </p>
+
+        <div class="card" style="background: rgba(255,255,255,0.55); box-shadow:none; border-color: rgba(21,71,52,0.12);">
+          <div id="chatLog" class="card-inner" style="height: 240px; overflow:auto; line-height: 1.55;">
+            <div class="muted" style="font-size: 13.5px;">
+              <div style="margin-bottom: 10px;">
+                <strong style="color: rgba(18,59,42,0.95);">Assistant:</strong>
+                Tell me what you have and what you’re craving, and I’ll suggest recipes.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top: 10px;">
+          <input id="chatInput" class="input" placeholder="Type a message…" />
+          <button id="chatSend" class="btn primary" type="button">Send</button>
+        </div>
+
+        <div class="muted" style="margin-top: 10px; font-size: 12.5px; line-height: 1.45;">
+          
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const chatLog = document.getElementById("chatLog");
+    const chatInput = document.getElementById("chatInput");
+    const chatSend = document.getElementById("chatSend");
+
+    function appendLine(who, text) {
+      const row = document.createElement("div");
+      row.style.marginBottom = "10px";
+      row.innerHTML = `<strong style="color: rgba(18,59,42,0.95);">${who}:</strong> ${text}`;
+      chatLog.appendChild(row);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function appendSuggestions(suggestions) {
+      if (!suggestions || !suggestions.length) return;
+
+      const box = document.createElement("div");
+      box.style.marginBottom = "10px";
+      box.innerHTML = `<div class="muted" style="font-weight:800; font-size:12px; letter-spacing:.3px; margin-top:6px;">SUGGESTIONS</div>`;
+      const list = document.createElement("div");
+      list.style.marginTop = "8px";
+      list.style.display = "flex";
+      list.style.flexDirection = "column";
+      list.style.gap = "8px";
+
+      suggestions.forEach(s => {
+        const item = document.createElement("div");
+        item.style.border = "1px solid rgba(21,71,52,0.12)";
+        item.style.background = "rgba(255,255,255,0.70)";
+        item.style.borderRadius = "14px";
+        item.style.padding = "10px 12px";
+        item.innerHTML = `
+          <div style="font-weight:800; color: rgba(18,59,42,0.95);">${s.title}</div>
+          <div class="muted" style="font-size: 13px; margin-top: 2px;">⏱️ ${s.time} • ⚙️ ${s.difficulty}</div>
+        `;
+        list.appendChild(item);
+      });
+
+      box.appendChild(list);
+      chatLog.appendChild(box);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    async function sendChat() {
+      const msg = (chatInput.value || "").trim();
+      if (!msg) return;
+
+      appendLine("You", msg);
+      chatInput.value = "";
+      chatSend.disabled = true;
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: msg })
+        });
+
+        const data = await res.json();
+        appendLine("Assistant", data.reply || "(no reply)");
+        appendSuggestions(data.suggestions);
+
+      } catch (e) {
+        appendLine("Assistant", "Something went wrong calling /api/chat.");
+      } finally {
+        chatSend.disabled = false;
+        chatInput.focus();
+      }
+    }
+
+    chatSend.addEventListener("click", sendChat);
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendChat();
+    });
+  </script>
+{% endblock %}

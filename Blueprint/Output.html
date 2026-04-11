@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="badge" style="margin-top: 10px;">
+    <span class="badge-dot"></span>
+    Recipes of the Day • {{ today }}
+  </div>
+
+  <h1 class="page-title">Output</h1>
+  <p class="page-subtitle">
+    A rotating set of daily recipes — clean, practical, and not overwhelming. Your saved ingredients help future matching.
+  </p>
+
+  <!-- Pantry context -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div class="card-inner">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h2 style="margin:0 0 6px; font-size: 18px;">Your pantry context</h2>
+          <p class="muted" style="margin:0; line-height:1.5;">
+            Saved ingredients: <strong style="color: rgba(247, 13, 13, 0.92)">{{ ingredients|length }}</strong>
+          </p>
+        </div>
+        <a class="btn" href="/ingredients">Update ingredients</a>
+      </div>
+
+      <div style="margin-top: 12px; display:flex; flex-wrap:wrap; gap:8px;">
+        {% if ingredients and ingredients|length > 0 %}
+          {% for it in ingredients[:12] %}
+            <span class="badge" style="background: rgba(34,197,94,0.10); border-color: rgba(34,197,94,0.22); color: rgba(240, 18, 18, 0.86);">
+              {{ it }}
+            </span>
+          {% endfor %}
+          {% if ingredients|length > 12 %}
+            <span class="badge">+ {{ ingredients|length - 12 }} more</span>
+          {% endif %}
+        {% else %}
+          <span class="muted">Add ingredients to personalize this page later.</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if excluded|length > 0 %}
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-inner">
+      <p class="muted">
+        Excluded ingredients: 
+        {% for e in excluded %}
+          <strong>{{ e }}</strong>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      </p>
+    </div>
+  </div>
+{% endif %}
+
+  <!-- Recipes grid -->
+  {% if recipes|length == 0 %}
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-inner">
+      <p class="muted">
+        No recipes found. Try adding more ingredients.
+      </p>
+      <a class="btn primary" href="{{ url_for('ingredients') }}">
+        Add Ingredients
+      </a>
+    </div>
+  </div>
+{% endif %}
+  <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap:16px;">
+    {% for r in recipes %}
+      <div class="card">
+        <div class="card-inner">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+            <div>
+              <h2 style="margin:0 0 6px; font-size: 18px;">{{ r.title }}</h2>
+              <div class="muted" style="display:flex; gap:10px; flex-wrap:wrap; font-size: 13.5px;">
+                <span>⏱️ {{ r.time }}</span>
+                <span>⚙️ {{ r.difficulty }}</span>
+              </div>
+            </div>
+            <span class="badge" style="border-color: rgba(245,158,11,0.22); background: rgba(245,158,11,0.10);">
+              Recipe
+            </span>
+          </div>
+
+          <div style="margin-top: 10px; display:flex; flex-wrap:wrap; gap:8px;">
+            {% for t in r.tags %}
+              <span class="badge" style="background: rgba(124,58,237,0.10); border-color: rgba(124,58,237,0.22);">
+                {{ t }}
+              </span>
+            {% endfor %}
+          </div>
+
+          <div class="hr"></div>
+
+          <div>
+            <div class="muted" style="font-weight: 750; letter-spacing: .2px; font-size: 12.5px;">
+              INGREDIENTS
+            </div>
+            <div class="muted" style="margin-top: 8px; line-height: 1.6;">
+              {{ r.ingredients | join(", ") }}
+            </div>
+          </div>
+
+          <div style="margin-top: 12px;">
+            <div class="muted" style="font-weight: 750; letter-spacing: .2px; font-size: 12.5px;">
+              STEPS
+            </div>
+            <ol class="muted" style="margin: 8px 0 0 18px; line-height: 1.7;">
+              {% for s in r.steps %}
+                <li>{{ s }}</li>
+              {% endfor %}
+            </ol>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+{% endblock %}

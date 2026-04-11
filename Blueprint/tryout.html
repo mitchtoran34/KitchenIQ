@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>🍽️ Try Something New</h1>
+
+<form method="POST">
+
+    <label>Ingredients to avoid:</label><br>
+
+    <input type="text" name="exclude"
+       placeholder="ex: onion, garlic, shrimp"
+       style="width:300px"
+       value="{{ exclude }}">
+
+
+    <button type="submit">Find Recipe</button>
+
+</form>
+
+<hr>
+
+{% if recipe %}
+
+<h2>{{ recipe.name }}</h2>
+
+<img src="{{ recipe.image }}" width="300">
+
+<h3>Ingredients</h3>
+<ul>
+{% for ingredient in recipe.ingredients %}
+<li>{{ ingredient }}</li>
+{% endfor %}
+</ul>
+
+<h3>Instructions</h3>
+<p>{{ recipe.instructions }}</p>
+
+{% endif %}
+
+{% endblock %}

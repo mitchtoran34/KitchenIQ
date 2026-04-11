@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1 class="page-title">My Ingredients</h1>
+  <p class="page-subtitle">
+    Add what you have in your pantry/fridge. We’ll save it (for this browser session) and use it to improve recommendations.
+  </p>
+
+  <div class="grid" style="grid-template-columns: 0.9fr 1.1fr; gap:20px;">
+
+    <!-- Add ingredient  -->
+    <div class="card">
+      <div class="card-inner">
+        <h2 style="margin:0 0 6px; font-size: 18px;">Add an ingredient</h2>
+        <p class="muted" style="margin:0 0 12px; line-height: 1.5;">
+          Examples: chicken, rice, eggs, tortillas, potatoes, garlic, butter…
+        </p>
+
+        <form method="POST" action="{{ url_for('ingredients') }}" style="display:flex; gap:10px; align-items:center;">
+          <input class="input" name="ingredient" placeholder="Type and press Add…" />
+          <input type="hidden" name="action" value="add" />
+          <button class="btn primary" type="submit">Add</button>
+        </form>
+
+        <div class="hr"></div>
+
+        <form method="POST"action="{{ url_for('ingredients') }}">
+          <input type="hidden" name="action" value="clear" />
+          <button class="btn ghost" type="submit">Clear all</button>
+        </form>
+
+        <div class="muted" style="margin-top: 10px; font-size: 12.5px; line-height: 1.45;">
+          Note: This saves until you close the browser / session expires.
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved list + filters -->
+    <div class="card">
+      <div class="card-inner">
+
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h2 style="margin:0 0 6px; font-size: 18px;">Your saved list</h2>
+            <p class="muted" style="margin:0; line-height: 1.5;">
+              Total: <strong style="color: rgba(242, 21, 21, 0.92)">{{ ingredients|length }}</strong>
+            </p>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        {% if ingredients and ingredients|length > 0 %}
+          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+            {% for it in ingredients %}
+              <div class="badge" style="gap:10px; padding: 10px 12px;">
+                <span style="color: rgba(129, 17, 241, 0.9); font-weight: 750;">{{ it }}</span>
+
+                <form method="POST" action="{{ url_for('ingredients') }}" style="margin:0;">
+                  <input type="hidden" name="action" value="remove" />
+                  <input type="hidden" name="remove_item" value="{{ it }}" />
+                  <button class="btn" type="submit" style="padding: 6px 10px; border-radius: 999px;">
+                    Remove
+                  </button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="muted" style="line-height: 1.6; margin-bottom:15px;">
+            No ingredients saved yet. Add a few on the left to get started.
+          </div>
+        {% endif %}
+
+        <!-- Recipe filters -->
+        <h3 style="margin-bottom:8px;">Recipe Filters</h3>
+
+        <form method="GET" action="/Output">
+         <!-- Strict / Flexible mode -->
+<div style="margin-bottom:10px;">
+  <label>
+    <input type="radio" name="mode" value="strict"
+    {% if request.args.get('mode','strict') == 'strict' %}checked{% endif %}>
+    Only show recipes using ONLY my ingredients
+  </label>
+</div>
+
+<div style="margin-bottom:10px;">
+  <label>
+    <input type="radio" name="mode" value="flexible"
+    {% if request.args.get('mode') == 'flexible' %}checked{% endif %}>
+    Allow recipes with additional ingredients
+  </label>
+</div>
+
+          <!-- Exclude ingredients -->
+          <div style="margin-top:15px;">
+            <label>Exclude ingredients:</label>
+            <input 
+              class="input"
+              type="text"
+              name="exclude"
+              placeholder="e.g. peanuts, pork, mushrooms"
+            >
+          </div>
+
+          <!-- Submit button -->
+          <div style="margin-top:15px;">
+            <button class="btn primary" type="submit">Find Recipes →</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
