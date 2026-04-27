@@ -229,6 +229,14 @@
         <a class="pill" href="/">Home</a>
         <a class="pill" href="/ingredients">My Ingredients</a>
         <a class="pill" href="/Output">Output</a>
+      
+        {% if current_user.is_authenticated %}
+          <a class="pill" href="/logout">Logout</a>
+        {% else %}
+          <a class="pill" href="/login">Login</a>
+          <a class="pill" href="/signup">Sign Up</a>
+        {% endif %}
+      </div>
         <a href="/tryout">Try Out</a>
       </div>
     </div>
